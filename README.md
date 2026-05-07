@@ -277,6 +277,7 @@ Internally `HALO.get_action`:
 | EM-CoT data synthesis pipeline | 🚧 In progress |
 | EM-CoT fine-tuning code | 🚧 In progress |
 | RoboTwin fine-tune weights (with EM-CoT) | 🚧 In progress |
+| Latest real-robot video demo | 🚧 In progress |
 
 Stay tuned — the remaining items will be released **as soon as the internal review finishes**.
 
