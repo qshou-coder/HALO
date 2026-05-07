@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments
+.env
+.env.local
+.venv/
+venv/
+env/
+
+# Editor / IDE
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Project artifacts
+downloads/
+download_data/
+outputs/
+wandb/
+results/
+log/
+checkpoints/
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+*.h5
+*.parquet
+
+# Claude / agent local state
+.claude/
+
+# Misc
+evaluation/lmms-eval/
