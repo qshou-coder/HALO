@@ -32,7 +32,6 @@ from .rlds.dataset import make_interleaved_dataset, make_single_dataset
 from .rlds.oxe import OXE_NAMED_MIXTURES, get_oxe_dataset_kwargs_and_weights
 from pathlib import Path
 from typing import Any, Dict, Tuple, Type
-from .action_tokenizer import ActionTokenizer
 from .rlds.utils.data_utils import NormalizationType
 
 
