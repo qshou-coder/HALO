@@ -60,8 +60,10 @@ On the **RoboTwin 2.0** benchmark HALO reaches **80.5%** average success rate (E
 | **Data** | [`data/`](data/) | Iterable dataset implementations, transforms, video/parquet utilities |
 | **Configs** | [`data/configs/`](data/configs/) | YAML recipes for dataset mixing & sampling |
 | **Scripts** | [`scripts/`](scripts/) | One-command install / download / fine-tune wrappers |
-| **Pretrained weights** | [HuggingFace](https://huggingface.co/qshou-coder/halo_pt_weight) | Stage-1 versatile-pre-training EMA checkpoint |
-| **Datasets** | [ModelScope](https://modelscope.cn/datasets/shou123/) | `Pretrain_Data` (LLaVA-NeXT) + `unlabeled_robotwin_data` |
+| **Pretrained_weight** | [qshou-coder/halo_pt_weight](https://huggingface.co/qshou-coder/halo_pt_weight) | Stage-1 versatile-pre-training EMA checkpoint |
+| **Finetuned_weight** | [qshou-coder/halo_ft_weight](https://huggingface.co/qshou-coder/halo_ft_weight) | RoboTwin fine-tune weights (w/o EM-CoT) |
+| **Pretraining_Data** | [shou123/Pretrain_Data](https://modelscope.cn/datasets/shou123/Pretrain_Data) | LLaVA-NeXT-Data for general VQA pre-training |
+| **RoboTwin_data** | [shou123/unlabeled_robotwin_data](https://www.modelscope.cn/datasets/shou123/unlabeled_robotwin_data) | RoboTwin 2.0 trajectories for fine-tuning |
 
 ### Workflow at a glance
 
