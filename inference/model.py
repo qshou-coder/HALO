@@ -1,7 +1,5 @@
 import os
 import random
-from typing import Optional
-
 from PIL import Image
 import torch
 from accelerate import infer_auto_device_map, load_checkpoint_and_dispatch, init_empty_weights
@@ -132,7 +130,7 @@ class HALO:
         )
         return inferencer
 
-    def get_action(self, instruction, obs_window, goal_image_save_dir: Optional[str] = None):
+    def get_action(self, instruction, obs_window):
         obs_window_image = [Image.fromarray(item) for item in obs_window]
 
         use_prob = random.random() < self.use_prob
@@ -140,18 +138,17 @@ class HALO:
 
         inference_hyper = dict(
             cfg_text_scale=4.0, cfg_img_scale=2.0, cfg_interval=[0.4, 1.0],
-            timestep_shift=3.0, num_timesteps=50, cfg_renorm_min=0.0, cfg_renorm_type="global",
-            cfg_action_text_scale=6.0, cfg_action_img_scale=6.0, cfg_action_interval=cfg_action_interval,
+            timestep_shift=3.0, num_timesteps=50,
+            cfg_renorm_min=0.0, cfg_renorm_type="global",
+            cfg_action_text_scale=6.0, cfg_action_img_scale=6.0,
+            cfg_action_interval=cfg_action_interval,
             cfg_action_timestep_shift=3.0, cfg_action_num_timesteps=10,
             cfg_action_renorm_min=0.0, cfg_action_renorm_type="global",
+            action_shape=16,
             use_subtask=use_prob, use_goal_image=use_prob,
-            decode_goal_image=False, visualize=False,
-            visualize_save_dir=f"./visualize_new/{self.checkpoint_path.split('/')[-2]}",
+            decode_goal_image=False,
         )
-        if goal_image_save_dir is not None:
-            inference_hyper["goal_image_save_dir"] = goal_image_save_dir
 
-        print('-' * 10)
         output_dict = self.policy(image=obs_window_image, text=instruction, **inference_hyper)
         return output_dict['action']
 

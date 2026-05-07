@@ -25,22 +25,24 @@ class HaloInferencer(InterleaveInferencer):
         num_timesteps: int = 50,
         cfg_renorm_min: float = 0.0,
         cfg_renorm_type: str = "global",
-        cfg_action_text_scale: float = 4.0, 
-        cfg_action_img_scale: float = 2.0, 
+        cfg_action_text_scale: float = 4.0,
+        cfg_action_img_scale: float = 2.0,
         cfg_action_interval: List[float] = [0.2, 1.0],
-        cfg_action_timestep_shift: float = 5.0, 
-        cfg_action_num_timesteps: int = 50, 
-        cfg_action_renorm_min: float = 0.0, 
+        cfg_action_timestep_shift: float = 5.0,
+        cfg_action_num_timesteps: int = 50,
+        cfg_action_renorm_min: float = 0.0,
         cfg_action_renorm_type: str = "global",
         max_think_token_n: int = 1000,
         image_shape: tuple = (1024, 1024),
         action_shape: int = 16,
         use_subtask: bool = False,
         use_goal_image: bool = False,
+        decode_goal_image: bool = True,
     ) -> List[Union[str, Image.Image]]:
 
         output_history = []
-        
+        generated_text = None
+
         gen_context = self.init_gen_context()
         cfg_text_context = deepcopy(gen_context)
         cfg_img_context = deepcopy(gen_context)
@@ -49,14 +51,12 @@ class HaloInferencer(InterleaveInferencer):
             for item in input_list:
                 if isinstance(item, Image.Image):
                     processed_image = item
-                    # processed_image_shape = processed_image.size[::-1]
                     if use_goal_image:
                         processed_image = self.vae_transform.resize_transform(pil_img2rgb(item))
                     processed_image_shape = processed_image.size[::-1]
                     gen_context = self.update_context_image(processed_image, gen_context, vit=True, vae=use_goal_image)
-                    cfg_text_context = deepcopy(gen_context)
+                    cfg_text_context = self.update_context_image(item, gen_context, vit=True, vae=True)
                 elif isinstance(item, str):
-                    # cfg_text_context = deepcopy(gen_context)
                     cfg_img_context = self.update_context_text(item, cfg_img_context)
                     gen_context = self.update_context_text(item, gen_context)
                 else:
@@ -67,66 +67,50 @@ class HaloInferencer(InterleaveInferencer):
             if use_subtask:
                 generated_text = self.gen_text(gen_context, do_sample=do_sample, temperature=text_temperature, max_length=max_think_token_n)
                 output_history.append(generated_text)
+                print(f"Generated text: {generated_text}")
 
-                # cfg_text_context = deepcopy(gen_context)
                 gen_context = self.update_context_text(generated_text, gen_context)
-                cfg_img_context = self.update_context_text(generated_text, cfg_img_context)
-                
+
             # Next, generate goal images...
             if use_goal_image:
-                generated_image = self.gen_image(
+                goal_output = self.gen_image(
                     processed_image_shape,
-                    gen_context, 
-                    cfg_text_precontext=cfg_text_context, 
+                    gen_context,
+                    cfg_text_precontext=cfg_text_context,
                     cfg_img_precontext=cfg_img_context,
-                    cfg_text_scale=cfg_text_scale, 
-                    cfg_img_scale=cfg_img_scale, 
-                    cfg_interval=cfg_interval, 
-                    timestep_shift=timestep_shift, 
+                    cfg_text_scale=cfg_text_scale,
+                    cfg_img_scale=cfg_img_scale,
+                    cfg_interval=cfg_interval,
+                    timestep_shift=timestep_shift,
                     num_timesteps=num_timesteps,
                     cfg_renorm_min=cfg_renorm_min,
                     cfg_renorm_type=cfg_renorm_type,
-                    output_type="image",
+                    output_type="image" if decode_goal_image else "latent",
                 )
-                output_history.append(generated_image)
 
-                # generated_latent = self.gen_image(
-                #     processed_image_shape,
-                #     gen_context, 
-                #     cfg_text_precontext=cfg_text_context, 
-                #     cfg_img_precontext=cfg_img_context,
-                #     cfg_text_scale=cfg_text_scale, 
-                #     cfg_img_scale=cfg_img_scale, 
-                #     cfg_interval=cfg_interval, 
-                #     timestep_shift=timestep_shift, 
-                #     num_timesteps=num_timesteps,
-                #     cfg_renorm_min=cfg_renorm_min,
-                #     cfg_renorm_type=cfg_renorm_type,
-                #     output_type="latent",
-                # )
+                if decode_goal_image:
+                    generated_image = goal_output
+                    output_history.append(generated_image)
 
-                cfg_img_context = deepcopy(gen_context)
-                processed_gen_image = pil_img2rgb(generated_image)
-                processed_gen_image = self.vae_transform.resize_transform(pil_img2rgb(processed_gen_image))
-
-                # H, W = processed_image_shape
-                # latent_h = H // self.model.latent_downsample
-                # latent_w = W // self.model.latent_downsample
-                # gen_context = self.update_context_with_latents(generated_latent, [(latent_h, latent_w)], gen_context)
-
-                gen_context = self.update_context_image(processed_gen_image, gen_context, vit=True, vae=True)
-                cfg_text_context = deepcopy(gen_context)
+                    processed_gen_image = pil_img2rgb(generated_image)
+                    processed_gen_image = self.vae_transform.resize_transform(pil_img2rgb(processed_gen_image))
+                    gen_context = self.update_context_image(processed_gen_image, gen_context, vit=True, vae=True)
+                else:
+                    generated_latent = goal_output
+                    H, W = processed_image_shape
+                    latent_h = H // self.model.latent_downsample
+                    latent_w = W // self.model.latent_downsample
+                    gen_context = self.update_context_with_latents(generated_latent, [(latent_h, latent_w)], gen_context)
 
             generated_action = self.gen_action(
                 action_shape,
                 gen_context,
-                cfg_text_precontext=cfg_text_context, 
+                cfg_text_precontext=cfg_text_context,
                 cfg_img_precontext=cfg_img_context,
-
-                cfg_text_scale=cfg_action_text_scale, 
-                cfg_img_scale=cfg_action_img_scale, 
-                cfg_interval=cfg_action_interval, 
-                timestep_shift=cfg_action_timestep_shift, 
+                cfg_text_scale=cfg_action_text_scale,
+                cfg_img_scale=cfg_action_img_scale,
+                cfg_interval=cfg_action_interval,
+                timestep_shift=cfg_action_timestep_shift,
                 num_timesteps=10,
                 cfg_renorm_min=cfg_action_renorm_min,
                 cfg_renorm_type=cfg_action_renorm_type,
@@ -136,9 +120,9 @@ class HaloInferencer(InterleaveInferencer):
         return output_history
 
     def __call__(
-        self, 
-        image: Optional[Image.Image] = None, 
-        text: Optional[str] = None, 
+        self,
+        image: Optional[Image.Image] = None,
+        text: Optional[str] = None,
         **kargs
     ) -> Dict[str, Any]:
         output_dict = {'image': None, 'text': None, 'action': None}
@@ -167,4 +151,3 @@ class HaloInferencer(InterleaveInferencer):
             elif isinstance(i, tuple):
                 output_dict['action'] = i[0].tolist()
         return output_dict
-    
