@@ -1,0 +1,7 @@
+velocity_threshold: 0.01 # velocity threshold
+delta_gripper_threshold: 0.01 # gripper-delta threshold
+direction_eps: 0.000 # direction tolerance
+closed_gripper_threshold: 0.01 # gripper closed threshold
+open_gripper_threshold: 0.99 # gripper open threshold
+direction_ratio_threshold: 0.2 # direction-ratio threshold
+min_idle_frames: 3 # minimum number of idle frames

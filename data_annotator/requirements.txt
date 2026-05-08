@@ -1,0 +1,9 @@
+openai>=1.12
+opencv-python
+PyYAML
+requests
+tqdm
+vllm==0.11.0
+qwen-vl-utils==0.0.14
+modelscope
+numpy==1.26.4

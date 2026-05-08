@@ -156,6 +156,12 @@ HALO/
 │   ├── download_data.sh             # Pretrain_Data + unlabeled_robotwin_data
 │   └── finetuning/finetune_no_cot.sh
 │
+├── data_annotator/                  # EM-CoT data synthesis pipeline
+│   ├── main.py                      # VLM-driven subtask + scene annotator entry
+│   ├── batch_*.sh process_*.sh      # batch / per-task drivers
+│   ├── config/config.yaml
+│   └── src/                         # convert / extract_frames / label / postprocessor / ...
+│
 ├── overwatch/                       # logging helpers
 ├── requirements.txt
 ├── .env.example                     # HALO_MODEL_DIR / HALO_CKPT_DIR / HALO_DATA_DIR / HALO_OUTPUT_DIR
@@ -276,7 +282,7 @@ Internally `HALO.get_action`:
 | Versatile-pre-training weights (`halo_pt_weight`) | ✅ Released |
 | RoboTwin fine-tune weights (w/o EM-CoT) | ✅ Released |
 | Fine-tuning datasets (`Pretrain_Data`, `unlabeled_robotwin_data`) | ✅ Released |
-| EM-CoT data synthesis pipeline | 🚧 In progress |
+| EM-CoT data synthesis pipeline ([`data_annotator/`](data_annotator/)) | ✅ Released |
 | EM-CoT fine-tuning code | 🚧 In progress |
 | RoboTwin fine-tune weights (with EM-CoT) | 🚧 In progress |
 | Latest real-robot video demo | 🚧 In progress |
